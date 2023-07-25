@@ -1,16 +1,22 @@
-import { PostLayout } from '@/components/PostLayout.jsx';
+import { PasswordProtect } from '@/components/PasswordProtect';
+import { PostLayout } from '@/components/PostLayout';
+
 export const meta = {
   title: 'Welcome to Framework7 Blog',
   date: '2017-09-02T15:41:46.000Z',
   image: '/images/welcome-to-framework7-blog.png',
+  passwordRequired: 'test-post', // Add this line to the posts you want to protect
 };
 
 # Welcome to Framework7 Blog
 
-Hi!
+<PasswordProtect passwordRequired={meta.passwordRequired}>
+  Hi!
 
 As title says welcome to Framework7 blog. I and, probably, other Framework7 developers will post here new tutorials, information about new releases, new features and news from Framework7 world.
 
+</PasswordProtect>
+
 export default ({ children }) => (
-  <PostLayout meta={meta}>{children}</PostLayout>
+  <PasswordProtect meta={meta}>{children}</PasswordProtect>
 );

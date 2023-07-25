@@ -2,17 +2,49 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 
-export const PostLayout = (props) => {
+export const ProtectedPostLayout = (props) => {
   const { children, meta } = props;
-  const { title, date, image } = meta;
+  const { title, date, image, passwordRequired } = meta;
   const router = useRouter();
   const contentEl = useRef(null);
   const [titles, setTitles] = useState([]);
+  const [isVerified, setIsVerified] = useState(!passwordRequired);
+
+  const promptedForPassword = useRef(false);
 
   useEffect(() => {
-    console.log(1);
-    if (contentEl.current) {
-      console.log(2);
+    if (passwordRequired && !promptedForPassword.current) {
+      promptedForPassword.current = true;
+      const enteredPassword = window.prompt(
+        'Please enter your password to view this page!',
+        ''
+      );
+
+      fetch('https://hashnode-passchecks.smacode.repl.co/auth', {
+        // Make sure your server URL is correct
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          page: passwordRequired, // This should match the page identifier on the server
+          password: enteredPassword,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 'success') {
+            setIsVerified(true);
+          } else {
+            alert('Incorrect password!');
+            router.push('/');
+          }
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (contentEl.current && isVerified) {
       const titleEls = [...contentEl.current.querySelectorAll('h2')].map(
         (el) => {
           return {
@@ -23,7 +55,7 @@ export const PostLayout = (props) => {
       );
       setTitles([...titleEls]);
     }
-  }, []);
+  }, [isVerified]);
 
   const onTitleClick = (e, title) => {
     e.preventDefault();
@@ -54,6 +86,11 @@ export const PostLayout = (props) => {
       );
     }
   };
+
+  if (!isVerified) {
+    return null;
+  }
+
   return (
     <>
       <Head>
@@ -116,3 +153,5 @@ export const PostLayout = (props) => {
     </>
   );
 };
+
+export default ProtectedPostLayout;
